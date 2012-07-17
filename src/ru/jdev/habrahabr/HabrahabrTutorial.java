@@ -8,6 +8,7 @@ import robocode.util.Utils;
 import java.awt.*;
 import java.awt.geom.Point2D;
 
+import static java.lang.Math.random;
 import static java.lang.Math.signum;
 import static java.lang.Math.toRadians;
 
@@ -29,9 +30,17 @@ public class HabrahabrTutorial extends AdvancedRobot {
         setTurnRadarRightRadians(Double.POSITIVE_INFINITY); // пока противник не найден бесконечно крутим радар в право
         while (isAlive) { // в принципе это не обязательно и можно оставить true, не я предпочитаю избегать бесконечных циклов
 
-            if (enemyX > -1) {
+            if (enemyX > -1) { // если противник обнаружен
                 final double radarTurn = getRadarTurn();
                 setTurnRadarRightRadians(radarTurn);
+
+                final double bodyTurn = getBodyTurn();
+                setTurnRightRadians(bodyTurn);
+
+                if (getDistanceRemaining() == 0) {
+                    final double distance = getDistance();
+                    setAhead(distance);
+                }
             }
 
             /**
@@ -55,6 +64,25 @@ public class HabrahabrTutorial extends AdvancedRobot {
         return Utils.normalRelativeAngle(alphaToEnemy - getRadarHeadingRadians() + RADIANS_5 * sign);
         // В принципе, прямо здесь можно вызвать setTurnRadarRightRadians, но я противник функций с сайд эффектами и стараюсь
         // минимизировать их количество
+    }
+
+    private double getDistance() {
+        // вычесление дистанции движения элементарно
+        return 200 - 400 * random();
+    }
+
+    private double getBodyTurn() {
+        // а вот вычисление угла поворота посложее
+        final double alphaToMe = angleTo(enemyX, enemyY, getX(), getY());
+
+        // определяем угловое направление относительно противника (по часовой стрелке, либо против) ...
+        final double lateralDirection = signum((getVelocity() != 0 ? getVelocity() : 1) * Math.sin(Utils.normalRelativeAngle(getHeadingRadians() - alphaToMe)));
+        // получаем желаемое направление движения
+        final double desiredHeading = Utils.normalAbsoluteAngle(alphaToMe + Math.PI / 2 * lateralDirection);
+        // нормализуем направление по скорости
+        final double normalHeading = getVelocity() >= 0 ? getHeadingRadians() : Utils.normalAbsoluteAngle(getHeadingRadians() + Math.PI);
+        // и возвращаем угол поворта
+        return Utils.normalRelativeAngle(desiredHeading - normalHeading);
     }
 
     @Override
