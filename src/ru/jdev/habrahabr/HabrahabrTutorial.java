@@ -41,6 +41,10 @@ public class HabrahabrTutorial extends AdvancedRobot {
                     final double distance = getDistance();
                     setAhead(distance);
                 }
+
+                final double gunTurn = getGunTurn();
+                setTurnGunRightRadians(gunTurn);
+                setFire(2);
             }
 
             /**
@@ -84,6 +88,11 @@ public class HabrahabrTutorial extends AdvancedRobot {
         // и возвращаем угол поворта
         return Utils.normalRelativeAngle(desiredHeading - normalHeading);
     }
+
+   private double getGunTurn() {
+       // вычисления тривиальны: считаем на какой угол надо повернуть пушку, чтобы она смотрела прямо на противника:
+       return Utils.normalRelativeAngle(angleTo(getX(), getY(), enemyX, enemyY) - getGunHeadingRadians());
+   }
 
     @Override
     public void onScannedRobot(ScannedRobotEvent event) {
